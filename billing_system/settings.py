@@ -129,3 +129,18 @@ MEDIA_ROOT = BASE_DIR / 'media'  # Store uploaded files in 'media' folder
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
+
+# Add to the bottom of settings.py
+import os
+
+# Static files
+STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+# Security
+SECRET_KEY = os.environ.get('SECRET_KEY')  # Read from environment
+DEBUG = False
+ALLOWED_HOSTS = ['.onrender.com']
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')  # ← Add this
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
