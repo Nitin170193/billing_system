@@ -1,0 +1,125 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="text-center text-primary">Sales Return</h2>
+
+    <!-- Error Message -->
+    <div id="errorMessage" class="alert alert-danger d-none" role="alert">
+        Please select an invoice before submitting the return!
+    </div>
+
+    <!-- Sales Return Section in One Card -->
+    <div class="card shadow p-4">
+        <div class="row">
+            <!-- Sales Return Form -->
+            <div class="col-md-12">
+                <form id="salesReturnForm" method="POST" action="{% url 'submit_sales_return' %}">
+                    {% csrf_token %}
+                    <div class="row">
+                        <!-- Select Invoice -->
+                        <div class="col-md-4">
+                            <label class="form-label">Select Invoice:</label>
+                            <select id="invoiceSelect" name="invoiceSelect" class="form-control">
+                                <option value="">-- Select Invoice --</option>
+                                {% for invoice in invoices %}
+                                <option value="{{ invoice.id }}">{{ invoice.invoice_id }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+
+                    <div id="invoiceDetails" class="mt-3" style="display: none;">
+                        <h5 class="text-success">Invoice Details</h5>
+                        <div class="table-responsive" style="max-height: 300px; overflow-y: auto;">
+                            <table class="table table-bordered">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th>Product</th>
+                                        <th>Quantity</th>
+                                        <th>Return Quantity</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="invoiceItems"></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-danger mt-3">Submit Return</button>
+                </form>
+            </div>
+
+            <!-- Sales Return List -->
+            <div class="col-md-12 mt-5">
+                <h4 class="text-center text-info">Sales Return List</h4>
+                <div class="table-responsive" style="max-height: 300px; overflow-y: auto;">
+                    <table class="table table-striped">
+                        <thead class="table-primary">
+                            <tr>
+                                <th>Invoice ID</th>
+                                <th>Product</th>
+                                <th>Returned Quantity</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for return_item in product_returns %}
+                            <tr>
+                                <td>{{ return_item.invoice.invoice_id }}</td>
+                                <td>{{ return_item.product.name }}</td>
+                                <td>{{ return_item.quantity }}</td>
+                                <td>{{ return_item.return_date }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="4" class="text-center text-muted">No Returns Found</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById("invoiceSelect").addEventListener("change", function () {
+    let invoiceId = this.value;
+    if (!invoiceId) {
+        document.getElementById("invoiceDetails").style.display = "none";
+        return;
+    }
+
+    fetch(`/get-invoice-items/${invoiceId}/`)
+        .then(response => response.json())
+        .then(data => {
+            let tableBody = document.getElementById("invoiceItems");
+            tableBody.innerHTML = "";
+            data.forEach(item => {
+                tableBody.innerHTML += `
+                    <tr>
+                        <td>${item.product_name}</td>
+                        <td>${item.quantity}</td>
+                        <td><input type="number" name="return_quantity_${item.id}" class="form-control" min="1" max="${item.quantity}" required></td>
+                        <td><button type="button" class="btn btn-danger remove-item">Remove</button></td>
+                    </tr>`;
+            });
+            document.getElementById("invoiceDetails").style.display = "block";
+        });
+});
+
+// Prevent form submission if invoice is not selected
+document.getElementById("salesReturnForm").addEventListener("submit", function (event) {
+    let invoiceSelect = document.getElementById("invoiceSelect").value;
+    if (!invoiceSelect) {
+        event.preventDefault();  // Stop form submission
+        let errorMessage = document.getElementById("errorMessage");
+        errorMessage.classList.remove("d-none"); // Show error message
+        errorMessage.scrollIntoView({ behavior: "smooth", block: "start" }); // Scroll to message
+    }
+});
+</script>
+
+{% endblock %}

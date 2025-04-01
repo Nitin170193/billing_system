@@ -1,0 +1,174 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+
+<div class="container mt-4">
+    <!-- Page Header -->
+    <div class="text-center mb-4">
+        <h1 class="display-5 text-primary"><b>INVENTORY MANAGEMENT</b></h1>
+    </div>
+
+    <!-- Toggle Buttons -->
+    <div class="d-flex justify-content-center mb-4">
+        <div class="btn-group">
+            <button type="button" class="btn btn-primary btn-lg" id="show-supplier-form">
+                <i class="bi bi-person-plus"></i> Add Supplier
+            </button>
+            <button type="button" class="btn btn-primary btn-lg" id="show-inventory-form">
+                <i class="bi bi-box-seam"></i> Add Inventory Item
+            </button>
+        </div>
+    </div>
+
+    <!-- Supplier Form -->
+    <div class="card shadow mb-4 form-container" id="supplier-form-section" style="display: none;">
+        <div class="card-header bg-success text-white">
+            <h2 class="card-title mb-0"><i class="bi bi-person-plus"></i> Add New Supplier</h2>
+        </div>
+        <div class="card-body scrollable-form">
+            <form method="post" action="{% url 'inventory_management' %}">
+                {% csrf_token %}
+                {{ supplier_form.as_p }}
+                <div class="d-flex justify-content-end">
+                    <button type="submit" name="supplier_form" class="btn btn-success me-2">
+                        <i class="bi bi-save"></i> Save Supplier
+                    </button>
+                    <button type="button" class="btn btn-secondary cancel-button">
+                        <i class="bi bi-x"></i> Cancel
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Inventory Item Form -->
+    <div class="card shadow mb-4 form-container" id="inventory-form-section" style="display: none;">
+        <div class="card-header bg-info text-white">
+            <h2 class="card-title mb-0"><i class="bi bi-box-seam"></i> Add New Inventory Item</h2>
+        </div>
+        <div class="card-body scrollable-form">
+            <form method="post" action="{% url 'inventory_management' %}">
+                {% csrf_token %}
+                {{ inventory_form.as_p }}
+                <div class="d-flex justify-content-end">
+                    <button type="submit" name="inventory_form" class="btn btn-success me-2">
+                        <i class="bi bi-save"></i> Save Inventory Item
+                    </button>
+                    <button type="button" class="btn btn-secondary cancel-button">
+                        <i class="bi bi-x"></i> Cancel
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Inventory List -->
+    <div class="card shadow-lg">
+        <div class="card-header bg-primary text-white">
+            <h2 class="card-title mb-0"><i class="bi bi-list"></i> Inventory List</h2>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive" style="max-height: 400px; overflow-y: auto; overflow-x: auto; width: 100%;">
+                <table class="table table-striped table-hover">
+                    <thead class="table-dark" style="position: sticky; top: 0; z-index: 1;">
+                        <tr>
+                            <th>Product</th>
+                            <th>Supplier</th>
+                            <th>Quantity</th>
+                            <th>Price</th>
+                            <th>GST (%)</th>
+                            <th>Total Amount</th>
+                            <th>Added On</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in inventory_items %}
+                            <tr>
+                                <td>{{ item.name }}</td>
+                                <td>{{ item.supplier.name }}</td>
+                                <td>{{ item.quantity }}</td>
+                                <td>{{ item.price }}</td>
+                                <td>{{ item.gst_percentage }}</td>
+                                <td>{{ item.total_amount }}</td>
+                                <td>{{ item.created_at }}</td>
+                                <td>
+                                    <a href="{% url 'edit_inventory_item' item.id %}" class="btn btn-outline-danger btn-sm">
+                                        <i class="bi bi-pencil-fill"></i> Edit
+                                    </a>
+                                </td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="8" class="text-center text-muted">No inventory items available.</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Bootstrap JS and Popper.js CDN -->
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"></script>
+
+<!-- Custom JavaScript -->
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const supplierFormSection = document.getElementById('supplier-form-section');
+        const inventoryFormSection = document.getElementById('inventory-form-section');
+        const showSupplierFormButton = document.getElementById('show-supplier-form');
+        const showInventoryFormButton = document.getElementById('show-inventory-form');
+        const cancelButtons = document.querySelectorAll('.cancel-button');
+
+        showSupplierFormButton.addEventListener('click', function () {
+            supplierFormSection.style.display = 'block';
+            inventoryFormSection.style.display = 'none';
+        });
+
+        showInventoryFormButton.addEventListener('click', function () {
+            inventoryFormSection.style.display = 'block';
+            supplierFormSection.style.display = 'none';
+        });
+
+        cancelButtons.forEach(button => {
+            button.addEventListener('click', function () {
+                this.closest('.card').style.display = 'none';
+            });
+        });
+    });
+</script>
+
+<style>
+    /* 🔹 Keeps forms inside container */
+    .form-container {
+        max-width: 600px;
+        margin: auto;
+    }
+
+    /* 🔹 Makes forms scrollable */
+    .scrollable-form {
+        max-height: 400px;
+        overflow-y: auto;
+        padding: 15px;
+    }
+
+    /* 🔹 Improves table appearance */
+    .table-responsive {
+        max-height: 400px;
+        overflow-y: auto;
+        overflow-x: auto;
+    }
+
+    /* 🔹 Fixes table header when scrolling */
+    thead.table-dark {
+        position: sticky;
+        top: 0;
+        z-index: 1;
+    }
+</style>
+
+{% endblock %}

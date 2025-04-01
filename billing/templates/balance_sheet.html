@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card shadow-lg" style="min-height: 80vh;"> <!-- Increased Card Height -->
+        <div class="card-header bg-primary text-white text-center">
+            <h3>Balance Sheet</h3>
+        </div>
+        <div class="card-body d-flex flex-column">
+            <!-- ✅ Date Range Filter Form -->
+            <form method="GET" class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label">From Date:</label>
+                    <input type="date" name="from_date" value="{{ from_date|default_if_none:'' }}" class="form-control">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">To Date:</label>
+                    <input type="date" name="to_date" value="{{ to_date|default_if_none:'' }}" class="form-control">
+                </div>
+                <div class="col-md-4 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary w-100">Filter</button>
+                </div>
+            </form>
+
+            <!-- ✅ Scrollable Table with Fixed Grand Total -->
+            <div class="table-container mt-4 flex-grow-1">
+                <table class="table table-bordered table-hover table-striped text-center align-middle">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Date</th>
+                            <th>Total Sales (₹)</th>
+                            <th>Cash Collection (₹)</th>
+                            <th>UPI Collection (₹)</th>
+                            <th>Total Collection (₹)</th>
+                            <th>Cash Expenses (₹)</th>
+                            <th>UPI Expenses (₹)</th>
+                            <th>Total Expenses (₹)</th>
+                            <th>Counter Cash (₹)</th>
+                        </tr>
+                    </thead>
+                    <tbody class="table-body">
+                        {% for data in balance_sheet_data %}
+                        <tr>
+                            <td><b>{{ data.date }}</b></td>
+                            <td class="text-success">₹{{ data.total_sales|default:"0.00" }}</td>
+                            <td>₹{{ data.cash_collection|default:"0.00" }}</td>
+                            <td>₹{{ data.upi_collection|default:"0.00" }}</td>
+                            <td class="bg-light">₹{{ data.total_collection|default:"0.00" }}</td>
+                            <td class="text-danger">₹{{ data.cash_expense|default:"0.00" }}</td>
+                            <td class="text-danger">₹{{ data.upi_expense|default:"0.00" }}</td>
+                            <td class="bg-light text-danger">₹{{ data.total_expenses|default:"0.00" }}</td>
+                            <td class="fw-bold">₹{{ data.counter_cash|default:"0.00" }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="9" class="text-center text-muted">No data available for the selected period.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot class="table-success fw-bold fixed-footer">
+                        <tr>
+                            <td>Grand Total:</td>
+                            <td>₹{{ grand_total_sales|default:"0.00" }}</td>
+                            <td>₹{{ grand_total_cash_collection|default:"0.00" }}</td>
+                            <td>₹{{ grand_total_upi_collection|default:"0.00" }}</td>
+                            <td>₹{{ grand_total_collection|default:"0.00" }}</td>
+                            <td>₹{{ grand_total_cash_expense|default:"0.00" }}</td>
+                            <td>₹{{ grand_total_upi_expense|default:"0.00" }}</td>
+                            <td>₹{{ grand_total_expenses|default:"0.00" }}</td>
+                            <td>₹{{ grand_total_counter_cash|default:"0.00" }}</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ✅ CSS for Scrollable Table with Fixed Grand Total -->
+<style>
+    .table-container {
+        max-height: 500px; /* Adjust height as needed */
+        overflow-y: auto;
+        border: 1px solid #ccc;
+        position: relative;
+    }
+
+    .table-body {
+        overflow-y: auto;
+    }
+
+    thead th {
+        position: sticky;
+        top: 0;
+        background: white;
+        z-index: 2;
+    }
+
+    .fixed-footer {
+        position: sticky;
+        bottom: 0;
+        background: #d4edda;
+        z-index: 2;
+    }
+</style>
+{% endblock %}

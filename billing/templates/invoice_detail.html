@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-lg">
+                <div class="card-header bg-primary text-white text-center">
+                    <h4><i class="fas fa-file-invoice"></i> Invoice Details</h4>
+                </div>
+                <div class="card-body">
+                    <table class="table table-bordered table-hover table-striped">
+                        <tbody>
+                            <tr><th>Invoice ID</th><td>{{ invoice.id }}</td></tr>
+                            <tr><th>Customer Name</th><td>{{ invoice.customer_name }}</td></tr>
+                            <tr><th>Mobile No</th><td>{{ invoice.customer_mobile }}</td></tr>
+                            <tr><th>Date</th><td>{{ invoice.date }}</td></tr>
+                            <tr><th>Total Amount</th><td>₹{{ invoice.total_amount|floatformat:2 }}</td></tr>
+                            <tr><th>Payable Amount</th><td>₹{{ invoice.payable_amount|floatformat:2 }}</td></tr>
+                            <tr><th>Paid Amount</th><td>₹{{ invoice.paid_amount|floatformat:2 }}</td></tr>
+                            <tr><th>Balance Amount</th><td>₹{{ invoice.balance_amount|floatformat:2 }}</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="card-footer text-center">
+                    <a href="{% url 'invoice_list' %}" class="btn btn-secondary px-4">
+                        <i class="fas fa-arrow-left"></i> Back to List
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- FontAwesome Icons -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+{% endblock %}

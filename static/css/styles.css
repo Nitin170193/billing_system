@@ -1,0 +1,71 @@
+/* General Styles */
+body {
+    font-family: 'Poppins', sans-serif;
+    background-color: #f8f9fa;
+    color: #333;
+    overflow-x: hidden;
+}
+
+/* Sidebar */
+.sidebar {
+    width: 250px;
+    height: 100vh;
+    position: fixed;
+    background: #343a40;
+    padding-top: 20px;
+    transition: all 0.3s ease;
+}
+
+.sidebar a {
+    color: white;
+    display: block;
+    padding: 15px;
+    text-decoration: none;
+}
+
+.sidebar a:hover {
+    background: #007bff;
+}
+
+/* Navbar */
+.navbar {
+    background: #007bff !important;
+}
+
+.navbar .navbar-brand {
+    color: white !important;
+    font-weight: bold;
+}
+
+.navbar .nav-link {
+    color: white !important;
+}
+
+/* Main Content */
+.main-content {
+    margin-left: 250px;
+    padding: 20px;
+    transition: all 0.3s ease;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .sidebar {
+        width: 100%;
+        height: auto;
+        position: absolute;
+        display: none;
+    }
+    .main-content {
+        margin-left: 0;
+    }
+}
+
+#inventoryForm {
+            display: none;
+            margin-bottom: 20px;
+        }
+
+ .form-section {
+            display: none;
+        }

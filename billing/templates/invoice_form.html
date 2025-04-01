@@ -1,0 +1,206 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-4">
+    <div class="card shadow-lg">
+        <div class="card-header bg-primary text-white">
+            <h4 class="mb-0">Create Invoice</h4>
+        </div>
+        <div class="card-body" style="max-height: 75vh; overflow-y: auto;">  <!-- ✅ Scrollable -->
+
+            <!-- Display Messages -->
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                   <span aria-hidden="true">&times;</span>
+                       </button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            <form method="POST" id="invoice-form">
+                {% csrf_token %}
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <label for="customer_name">Customer Name</label>
+                        <input type="text" name="customer_name" class="form-control" required>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="customer_mobile">Mobile No</label>
+                        <input type="text" name="customer_mobile" class="form-control" required>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="gst_no">GST No</label>
+                        <input type="text" name="gst_no" class="form-control">
+                    </div>
+                </div>
+
+                <table class="table" id="product-table">
+                    <thead>
+                        <tr>
+                            <th>Product</th>
+                            <th>Stock</th>
+                            <th>Price</th>
+                            <th>Quantity</th>
+                            <th>GST%</th>
+                            <th>Total Amount</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="product-row">
+                            <td>
+                                <select name="product[]" class="form-control product-select" required>
+                                    <option value="">Select Product</option>
+                                    {% for product in products %}
+                                    <option value="{{ product.id }}" data-stock="{{ product.quantity }}" data-price="{{ product.price }}">{{ product.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </td>
+                            <td><input type="text" name="stock[]" class="form-control stock" readonly></td>
+                            <td><input type="text" name="price[]" class="form-control price" readonly></td>
+                            <td><input type="number" name="quantity[]" class="form-control quantity" required></td>
+                            <td><input type="number" name="gst[]" class="form-control gst" required></td>
+                            <td><input type="text" name="total_amount[]" class="form-control total-amount" readonly></td>
+                            <td><button type="button" class="btn btn-danger remove-row">✖</button></td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <button type="button" id="add-product" class="btn btn-primary">+ Add Product</button>
+
+                <div class="row mt-4">
+                    <div class="col-md-4">
+                        <label>Total Amount</label>
+                        <input type="text" id="total-amount" class="form-control" readonly>
+                    </div>
+                    <div class="col-md-4">
+                        <label>Discount (%)</label>
+                        <input type="number" id="discount" name="discount" class="form-control">
+                    </div>
+                    <div class="col-md-4">
+                        <label>Discount Amount</label>
+                        <input type="text" id="discount-amount" name="discount_amount" class="form-control" readonly>
+                    </div>
+                    <div class="col-md-4">
+                        <label>Payable Amount</label>
+                        <input type="text" id="payable-amount" name="payable_amount" class="form-control" readonly>
+                    </div>
+                </div>
+
+                <div class="row mt-3">
+                    <div class="col-md-4">
+                        <label>Paid Amount</label>
+                        <input type="number" id="paid-amount" name="paid_amount" class="form-control">
+                    </div>
+                    <div class="col-md-4">
+                        <label>Balance Amount</label>
+                        <input type="text" id="balance-amount" name="balance_amount" class="form-control" readonly>
+                    </div>
+                    <div class="col-md-4">
+                        <label>Payment Mode</label>
+                        <select name="payment_mode" class="form-control">
+                            <option value="Cash">Cash</option>
+                            <option value="Card">Card</option>
+                            <option value="UPI">UPI</option>
+                            <option value="Bank Transfer">Bank Transfer</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-success mt-3">Save Invoice</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function () {
+    $(document).on("click", "#add-product", function () {
+        var newRow = $(".product-row:first").clone(); // Clone first row
+        newRow.find("select, input").val(""); // Reset values
+        newRow.find(".total-amount").val("0.00");
+        $("#product-table tbody").append(newRow);
+    });
+
+    $(document).on("click", ".remove-row", function () {
+        if ($(".product-row").length > 1) {
+            $(this).closest("tr").remove();
+            calculateSummary(); // Recalculate totals after removing
+        }
+    });
+
+    $(document).on("change", ".product-select", function () {
+        var row = $(this).closest("tr");
+        var stock = $(this).find("option:selected").data("stock") || 0;
+        var price = $(this).find("option:selected").data("price") || 0;
+        row.find(".stock").val(stock);
+        row.find(".price").val(price);
+        row.find(".quantity").val(1);
+        row.find(".gst").val(0);
+        row.find(".total-amount").val(price);
+        calculateSummary();
+    });
+
+    $(document).on("input", ".quantity, .gst", function () {
+        var row = $(this).closest("tr");
+        var price = parseFloat(row.find(".price").val()) || 0;
+        var quantity = parseInt(row.find(".quantity").val()) || 0;
+        var gst = parseFloat(row.find(".gst").val()) || 0;
+        var gstAmount = (price * gst / 100) * quantity;
+        var total = (price * quantity) + gstAmount;
+        row.find(".total-amount").val(total.toFixed(2));
+        calculateSummary();
+    });
+
+    function calculateSummary() {
+        var totalAmount = 0;
+        $(".total-amount").each(function () {
+            totalAmount += parseFloat($(this).val()) || 0;
+        });
+        $("#total-amount").val(totalAmount.toFixed(2));
+        updatePayableAmount();
+    }
+
+    $("#discount").on("input", updatePayableAmount);
+
+    function updatePayableAmount() {
+        var total = parseFloat($("#total-amount").val()) || 0;
+        var discountPercentage = parseFloat($("#discount").val()) || 0;
+        var discountAmount = (total * discountPercentage) / 100;
+
+        $("#discount-amount").val(discountAmount.toFixed(2));
+        var payable = total - discountAmount;
+        $("#payable-amount").val(payable.toFixed(2));
+
+        updateBalanceAmount();
+    }
+
+    $("#paid-amount").on("input", updateBalanceAmount);
+
+    function updateBalanceAmount() {
+        var payable = parseFloat($("#payable-amount").val()) || 0;
+        var paid = parseFloat($("#paid-amount").val()) || 0;
+        var balance = payable - paid;
+        $("#balance-amount").val(balance.toFixed(2));
+    }
+});
+
+
+    $(document).on("click", ".alert-close-btn", function () {
+    $(this).closest(".alert").fadeOut("slow", function () {
+        $(this).remove();
+    });
+});
+
+    $(document).ready(function () {
+    setTimeout(function () {
+        $(".alert").fadeOut("slow", function () {
+            $(this).remove();
+        });
+    }, 3000); // 3000ms = 3 seconds
+});
+</script>
+
+{% endblock %}

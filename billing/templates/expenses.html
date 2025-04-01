@@ -1,0 +1,116 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+
+<div class="container mt-5">
+    <h2 class="text-center mb-4 text-primary fw-bold">💰 Expenses</h2>
+
+    <!-- Messages -->
+    {% if messages %}
+        <div class="alert alert-success shadow-sm">
+            {% for message in messages %}
+                {{ message }}
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <!-- Add Expense Button -->
+    <div class="d-flex justify-content-between mb-3">
+        <button class="btn btn-primary shadow" data-bs-toggle="modal" data-bs-target="#addExpenseModal">
+            ➕ Add Expense
+        </button>
+        <!-- Search Bar -->
+        <form method="GET" class="d-flex">
+            <input type="text" name="search" class="form-control border-primary shadow-sm"
+                   placeholder="🔍 Search by name..." value="{{ request.GET.search }}">
+        </form>
+    </div>
+
+    <!-- Expense List -->
+    <div class="table-responsive shadow-lg rounded">
+        <table class="table table-bordered table-striped table-hover">
+            <thead class="table-dark text-center">
+                <tr>
+                    <th>Date</th>
+                    <th>Person Name</th>
+                    <th>Reference Person</th>
+                    <th>Reason</th>
+                    <th>Amount (₹)</th>
+                    <th>Payment Mode</th> <!-- New Column -->
+                </tr>
+            </thead>
+            <tbody>
+                {% for expense in expenses %}
+                <tr class="text-center">
+                    <td>{{ expense.date }}</td>
+                    <td class="fw-bold">{{ expense.person_name }}</td>
+                    <td>{{ expense.reference_person }}</td>
+                    <td>{{ expense.reason }}</td>
+                    <td class="text-success fw-bold">₹{{ expense.amount }}</td>
+                    <td>
+                        {% if expense.payment_mode == "Cash" %}
+                            <span class="badge bg-success">Cash</span>
+                        {% else %}
+                            <span class="badge bg-info">UPI</span>
+                        {% endif %}
+                    </td> <!-- Payment Mode Display -->
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="text-center text-danger">No expenses found</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Add Expense Modal -->
+<div class="modal fade" id="addExpenseModal" tabindex="-1" aria-labelledby="addExpenseModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content shadow-lg">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="addExpenseModalLabel">➕ Add Expense</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form method="POST">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">📅 Date</label>
+                        <input type="date" name="date" class="form-control border-primary shadow-sm" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">👤 Person Name</label>
+                        <input type="text" name="person_name" class="form-control border-primary shadow-sm" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">🧑 Reference Person</label>
+                        <input type="text" name="reference_person" class="form-control border-primary shadow-sm">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">📝 Reason</label>
+                        <textarea name="reason" class="form-control border-primary shadow-sm" rows="2" required></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">💲 Amount</label>
+                        <input type="number" name="amount" class="form-control border-primary shadow-sm" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">💳 Payment Mode</label>
+                        <select name="payment_mode" class="form-select border-primary shadow-sm" required>
+                            <option value="Cash">Cash</option>
+                            <option value="UPI">UPI</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-success w-100 shadow-sm fw-bold">💾 Save Expense</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Bootstrap 5 JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+{% endblock %}

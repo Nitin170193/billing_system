@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invoice - {{ invoice.invoice_id }}</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background: #f5f7fa;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+        .invoice-box {
+            max-width: 850px;
+            margin: auto;
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+            font-size: 15px;
+            line-height: 1.6;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 3px solid #007bff;
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+        }
+        .company-logo {
+            font-size: 26px;
+            font-weight: bold;
+            color: #007bff;
+        }
+        .invoice-title {
+            text-align: right;
+            font-size: 22px;
+            font-weight: bold;
+            color: #333;
+        }
+        .info-box {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            background: #f0f4f8;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+        }
+        .info-box .customer-info {
+            text-align: right;
+        }
+        .info-box strong {
+            font-size: 16px;
+            color: #444;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: #fff;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        th {
+            background: #007bff;
+            color: white;
+            padding: 12px;
+            text-align: center;
+            font-size: 15px;
+        }
+        td {
+            padding: 10px;
+            text-align: center;
+            border-bottom: 1px solid #ddd;
+        }
+        .summary-box {
+            margin-top: 20px;
+            background: #f0f4f8;
+            padding: 15px;
+            border-radius: 6px;
+        }
+        .summary-line {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 0;
+            font-size: 16px;
+        }
+        .summary-total {
+            font-size: 18px;
+            font-weight: bold;
+            border-top: 2px solid #000;
+            padding-top: 10px;
+        }
+        .thank-you {
+            text-align: center;
+            font-size: 16px;
+            font-style: italic;
+            margin-top: 15px;
+            color: #007bff;
+        }
+        .print-btn {
+            margin-top: 25px;
+            text-align: center;
+        }
+        button {
+            padding: 12px 25px;
+            font-size: 16px;
+            font-weight: bold;
+            background: #28a745;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: 0.3s;
+        }
+        button:hover {
+            background: #218838;
+            transform: scale(1.05);
+        }
+        @media print {
+            body {
+                background: white;
+            }
+            .invoice-box {
+                box-shadow: none;
+                border: none;
+            }
+            button {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="invoice-box" id="invoice-box">
+        <!-- Header -->
+        <div class="header">
+            <div class="company-logo">{{ business.name }}</div>
+            <div class="invoice-title">Tax Invoice</div>
+        </div>
+
+        <!-- Business & Customer Info -->
+        <div class="info-box">
+            <div>
+                <strong>Business Details:</strong><br>
+                {{ business.address }}, Pincode: {{ business.pincode }}<br>
+                Contact: {{ business.contact }} | Email: {{ business.email }}<br>
+                GST No: {{ business.gst_no }}
+            </div>
+            <div class="customer-info">
+                <strong>Invoice No:</strong> {{ invoice.invoice_id }}<br>
+                <strong>Date:</strong> {{ invoice.date }}<br>
+                <strong>Customer:</strong> {{ invoice.customer_name }}<br>
+                <strong>Mobile:</strong> {{ invoice.customer_mobile }}<br>
+                <strong>GST No:</strong> {{ invoice.gst_no|default:"N/A" }}
+            </div>
+        </div>
+
+        <!-- Product Table -->
+        <table>
+            <thead>
+                <tr>
+                    <th>Product</th>
+                    <th>Qty</th>
+                    <th>Price (₹)</th>
+                    <th>GST (%)</th>
+                    <th>Total (₹)</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in invoice.invoice_items.all %}
+                <tr>
+                    <td>{{ item.product.name }}</td>
+                    <td>{{ item.quantity }}</td>
+                    <td>₹{{ item.price }}</td>
+                    <td>{{ item.gst }}%</td>
+                    <td>₹{{ item.total_amount }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <!-- Final Summary -->
+        <div class="summary-box">
+            <div class="summary-line">
+                <span>Sub Total:</span> <span>₹{{ invoice.total_amount }}</span>
+            </div>
+            <div class="summary-line">
+                <span>Discount:</span> <span>- ₹{{ invoice.discount_amount }}</span>
+            </div>
+            <div class="summary-line summary-total">
+                <span>Payable Amount:</span> <span>₹{{ invoice.payable_amount }}</span>
+            </div>
+            <div class="summary-line">
+                <span>Paid:</span> <span>₹{{ invoice.paid_amount }}</span>
+            </div>
+            <div class="summary-line summary-total">
+                <span>Balance:</span> <span>₹{{ invoice.balance_amount }}</span>
+            </div>
+        </div>
+
+        <!-- Thank You Message -->
+        <div class="thank-you">
+            Thank you for your business! We appreciate your trust in us. 😊
+        </div>
+
+        <!-- Print Button -->
+        <div class="print-btn">
+            <button onclick="printInvoice()">🖨️ Print Invoice</button>
+        </div>
+    </div>
+
+    <script>
+        function printInvoice() {
+            var printContents = document.getElementById("invoice-box").innerHTML;
+            var originalContents = document.body.innerHTML;
+            document.body.innerHTML = printContents;
+            window.print();
+            location.reload();
+        }
+    </script>
+</body>
+</html>
